@@ -11,11 +11,15 @@
 
 import _ from 'lodash';
 import {Wechat} from '../../sqldb';
+import {User} from '../../sqldb';
+import config from '../../config/environment';
+import jwt from 'jsonwebtoken';
+import expressJwt from 'express-jwt';
 
 var request = require('request');
 
-var APPID = "wx45a1e16368ad52ba";
-var SECRET = "049b70db6cba1b801fc66fa8a73413fc";
+var APPID = "wx72ab601de435b361";
+var SECRET = "9ac725b60faf8e6bada82193814ed3b1";
 
 var access_token = "";
 var refresh_token = "";
@@ -126,7 +130,16 @@ export function destroy(req, res) {
 
 export function index(req, res){
     //还要加验证程序，现在只是暂时让微信认证而已
+    //res.send('1');
+    
 
+    // var REDIRECT_URI = "http://www.billyn.net/api/wechats/wechatLogin";
+    // var url = "https://open.weixin.qq.com/connect/oauth2/authorize?"+
+    //         "appid="+APPID+
+    //         "&redirect_uri="+REDIRECT_URI+
+    //         "&response_type=code&scope=1&state=1#wechat_redirect";
+
+    // res.redirect(url);
     if(req.query.echostr){
       res.send(req.query.echostr);
     }
@@ -140,10 +153,10 @@ export function create(req, res){
     res.send('<a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx45a1e16368ad52ba&redirect_uri=http://e7a09da6.ngrok.io&response_type=code&scope=snsapi_userinfo&state=1#wechat_redirect">是这里</a>');
 }
 
-export function wechatLogin(req, res){
-  //
-  // res.redirect("http://e7a09da6.ngrok.io");
-  // res.send(req.query.code);
+export function wechatLogin(req, res)
+{
+
+
   if(req.query.code){
     var code = req.query.code;
     var url = "https://api.weixin.qq.com/sns/oauth2/access_token?"+
@@ -151,6 +164,8 @@ export function wechatLogin(req, res){
               "&secret=" + SECRET +
               "&code=" + code +
               "&grant_type=authorization_code";
+             
+              
     // res.redirect(url);
     request.get(
         url,
@@ -161,35 +176,57 @@ export function wechatLogin(req, res){
                 access_token = bodyObj.access_token;
                 refresh_token = bodyObj.refresh_token;//not using now
                 openid = bodyObj.openid;
-                // // get user info
-                var userInfoUrl = "https://api.weixin.qq.com/sns/userinfo?"+
-                                  "access_token=" + access_token +
-                                  "&openid=" + openid;
-                request.get(
-                  userInfoUrl,
-                  function (error, response, body){
-                    var bodyObj = JSON.parse(body);
-                    username = bodyObj.nickname;
-                    res.send(username);
+                // res.send(openid); 
+                User.find({where: {wechat: openid}}).then(function(user){
+                  var result = user? true: false;
+                  if(user){
+                      var token = signToken(user._id,user.role);
+                      res.cookie('token', token);         
+                      res.redirect("http://www.billyn.net/wechat/auth");
+                  } else {
+                      res.redirect("http://www.billyn.net/wechat/bind?openid="+openid);
                   }
-                );
+                  
+                })
+
+                // // get user info
+                // var userInfoUrl = "https://api.weixin.qq.com/sns/userinfo?"+
+                //                   "access_token=" + access_token +
+                //                   "&openid=" + openid;
+
+                //.................
+                // request.get(
+                //   userInfoUrl,
+                //   function (error, response, body){
+                //     var bodyObj = JSON.parse(body);
+                //     username = bodyObj.nickname;
+                //     res.send(username);
+                //   }
+                // );
 
                 //go to public page
 
-            }
+          }
         }
     );
   }
-
-
-
-
 }
 export function wechatOauthRedirect(req,res){
-  var REDIRECT_URI = "http://e7a09da6.ngrok.io/wechatLogin";
-  var url = "https://open.weixin.qq.com/connect/oauth2/authorize?"+
-            "appid="+APPID+
-            "&redirect_uri="+REDIRECT_URI+
-            "&response_type=code&scope=1&state=1#wechat_redirect";
-  res.redirect(url);
+  // var REDIRECT_URI = "http://e7a09da6.ngrok.io/wechatLogin";
+
+
+  var REDIRECT_URI = "http://www.billyn.net/api/wechats/wechatLogin";
+   var url = "https://open.weixin.qq.com/connect/oauth2/authorize?"+
+             "appid="+APPID+
+             "&redirect_uri="+REDIRECT_URI+
+             "&response_type=code&scope=snsapi_userinfo&state=1#wechat_redirect";
+  
+   res.redirect(url);
 }
+
+export function signToken(id, role) {
+  return jwt.sign({ _id: id, role: role }, config.secrets.session, {
+    expiresIn: 60 * 60 * 5
+  });
+}
+

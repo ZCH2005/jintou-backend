@@ -3,40 +3,40 @@
 var app = require('../..');
 import request from 'supertest';
 
-var newCategory;
+var newApp;
 
-describe('Category API:', function() {
+describe('App API:', function() {
 
-  describe('GET /api/categorys', function() {
-    var categorys;
+  describe('GET /api/apps', function() {
+    var apps;
 
     beforeEach(function(done) {
       request(app)
-        .get('/api/categorys')
+        .get('/api/apps')
         .expect(200)
         .expect('Content-Type', /json/)
         .end((err, res) => {
           if (err) {
             return done(err);
           }
-          categorys = res.body;
+          apps = res.body;
           done();
         });
     });
 
     it('should respond with JSON array', function() {
-      categorys.should.be.instanceOf(Array);
+      apps.should.be.instanceOf(Array);
     });
 
   });
 
-  describe('POST /api/categorys', function() {
+  describe('POST /api/apps', function() {
     beforeEach(function(done) {
       request(app)
-        .post('/api/categorys')
+        .post('/api/apps')
         .send({
-          name: 'New Category',
-          info: 'This is the brand new category!!!'
+          name: 'New App',
+          info: 'This is the brand new app!!!'
         })
         .expect(201)
         .expect('Content-Type', /json/)
@@ -44,55 +44,55 @@ describe('Category API:', function() {
           if (err) {
             return done(err);
           }
-          newCategory = res.body;
+          newApp = res.body;
           done();
         });
     });
 
-    it('should respond with the newly created category', function() {
-      newCategory.name.should.equal('New Category');
-      newCategory.info.should.equal('This is the brand new category!!!');
+    it('should respond with the newly created app', function() {
+      newApp.name.should.equal('New App');
+      newApp.info.should.equal('This is the brand new app!!!');
     });
 
   });
 
-  describe('GET /api/categorys/:id', function() {
-    var category;
+  describe('GET /api/apps/:id', function() {
+    var app;
 
     beforeEach(function(done) {
       request(app)
-        .get('/api/categorys/' + newCategory._id)
+        .get('/api/apps/' + newApp._id)
         .expect(200)
         .expect('Content-Type', /json/)
         .end((err, res) => {
           if (err) {
             return done(err);
           }
-          category = res.body;
+          app = res.body;
           done();
         });
     });
 
     afterEach(function() {
-      category = {};
+      app = {};
     });
 
-    it('should respond with the requested category', function() {
-      category.name.should.equal('New Category');
-      category.info.should.equal('This is the brand new category!!!');
+    it('should respond with the requested app', function() {
+      app.name.should.equal('New App');
+      app.info.should.equal('This is the brand new app!!!');
     });
 
   });
 
-  describe('PUT /api/categorys/:id', function() {
-    var updatedCategory;
+  describe('PUT /api/apps/:id', function() {
+    var updatedApp;
 
     beforeEach(function(done) {
       request(app)
-        .put('/api/categorys/' + newCategory._id)
+        .put('/api/apps/' + newApp._id)
         .send({
-          name: 'Updated Category',
-          info: 'This is the updated category!!!'
+          name: 'Updated App',
+          info: 'This is the updated app!!!'
         })
         .expect(200)
         .expect('Content-Type', /json/)
@@ -100,27 +100,27 @@ describe('Category API:', function() {
           if (err) {
             return done(err);
           }
-          updatedCategory = res.body;
+          updatedApp = res.body;
           done();
         });
     });
 
     afterEach(function() {
-      updatedCategory = {};
+      updatedApp = {};
     });
 
-    it('should respond with the updated category', function() {
-      updatedCategory.name.should.equal('Updated Category');
-      updatedCategory.info.should.equal('This is the updated category!!!');
+    it('should respond with the updated app', function() {
+      updatedApp.name.should.equal('Updated App');
+      updatedApp.info.should.equal('This is the updated app!!!');
     });
 
   });
 
-  describe('DELETE /api/categorys/:id', function() {
+  describe('DELETE /api/apps/:id', function() {
 
     it('should respond with 204 on successful removal', function(done) {
       request(app)
-        .delete('/api/categorys/' + newCategory._id)
+        .delete('/api/apps/' + newApp._id)
         .expect(204)
         .end((err, res) => {
           if (err) {
@@ -130,9 +130,9 @@ describe('Category API:', function() {
         });
     });
 
-    it('should respond with 404 when category does not exist', function(done) {
+    it('should respond with 404 when app does not exist', function(done) {
       request(app)
-        .delete('/api/categorys/' + newCategory._id)
+        .delete('/api/apps/' + newApp._id)
         .expect(404)
         .end((err, res) => {
           if (err) {

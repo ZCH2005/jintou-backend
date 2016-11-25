@@ -1,15 +1,15 @@
 /**
- * Category model events
+ * App model events
  */
 
 'use strict';
 
 import {EventEmitter} from 'events';
-var Category = require('../../sqldb').Category;
-var CategoryEvents = new EventEmitter();
+var App = require('../../sqldb').App;
+var AppEvents = new EventEmitter();
 
 // Set max event listeners (0 == unlimited)
-CategoryEvents.setMaxListeners(0);
+AppEvents.setMaxListeners(0);
 
 // Model events
 var events = {
@@ -21,15 +21,15 @@ var events = {
 // Register the event emitter to the model events
 for (var e in events) {
   var event = events[e];
-  Category.hook(e, emitEvent(event));
+  App.hook(e, emitEvent(event));
 }
 
 function emitEvent(event) {
   return function(doc, options, done) {
-    CategoryEvents.emit(event + ':' + doc._id, doc);
-    CategoryEvents.emit(event, doc);
+    AppEvents.emit(event + ':' + doc._id, doc);
+    AppEvents.emit(event, doc);
     done(null);
   }
 }
 
-export default CategoryEvents;
+export default AppEvents;
